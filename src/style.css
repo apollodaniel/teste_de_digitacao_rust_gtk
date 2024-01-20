@@ -1,10 +1,35 @@
 #preview_box{
     font-size: 24px;
-    padding: 32px;
 }
-
+#entry{
+    font-size: 24px;
+}
 #is_correct_preview {
     padding-left: 32px;
     padding-top: 32px;
     font-size: 16px;
+}
+#preview{
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-bottom: 32px;
+}
+#first_word_preview{
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: solid;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 32px;
+}
+
+#correct_word_count{
+    font-size: 18px;
+    padding-left: 32px;
+    padding-bottom: 4px;
+}
+#incorrect_word_count{
+    font-size: 18px;
+    padding-left: 32px;
+    padding-bottom: 32px;
 }

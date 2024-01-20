@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, borrow::BorrowMut};
 
 use rand::{rngs::OsRng, seq::SliceRandom};
 use gtk::{CssProvider, gdk::Screen, prelude::{CssProviderExt, ApplicationExt, ApplicationExtManual}};
@@ -28,7 +28,8 @@ fn build_ui<'a>(f: &gtk::Application){
     
     let words = get_words();
     let current_index:RefCell<usize> = RefCell::new(0);
-
+    let mut correct_word_count = RefCell::new(0);
+    let mut incorrect_word_count = RefCell::new(0);
 
     let window = gtk::ApplicationWindow::new(f);
     load_css(&window);
@@ -40,7 +41,7 @@ fn build_ui<'a>(f: &gtk::Application){
     let window_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
     
-    let typed_words_ref: RefCell<Vec<Word>> = RefCell::new(Vec::new());
+    //let typed_words_ref: RefCell<Vec<Word>> = RefCell::new(Vec::new());
 
     let mut entry_buffer = gtk::EntryBuffer::new(Some(""));
     let entry = gtk::Entry::builder()
@@ -64,26 +65,44 @@ fn build_ui<'a>(f: &gtk::Application){
         .can_focus(false)
         .build();
 
-    let mut current_word =  RefCell::new(words.get(*current_index.borrow()).unwrap().to_string());
+    let current_word =  RefCell::new(words.get(*current_index.borrow()).unwrap().to_string());
     
     let first_word_preview_text = current_word.borrow().clone();
     let mut  first_word_preview_buffer = gtk::TextBuffer::builder().text(first_word_preview_text).build();
-
+    
     let first_word_preview = gtk::TextView::builder()
-        .buffer(&mut first_word_preview_buffer)
+    .buffer(&mut first_word_preview_buffer)
+    .editable(false)
+    .can_focus(false)
+    .build();
+
+    let mut  correct_word_count_preview_buffer = gtk::TextBuffer::builder().text("Correto: 0").build();
+    let correct_word_count_preview = gtk::TextView::builder()
+        .buffer(&mut correct_word_count_preview_buffer)
+        .editable(false)
+        .can_focus(false)
+        .build();
+    
+    let mut  incorrect_word_count_preview_buffer = gtk::TextBuffer::builder().text("Incorreto: 0").build();
+    let incorrect_word_count_preview = gtk::TextView::builder()
+        .buffer(&mut incorrect_word_count_preview_buffer)
         .editable(false)
         .can_focus(false)
         .build();
     
     ..=&entry.connect_changed(move |_|{
         let entry_text = entry_buffer.text();
-        is_correct_preview_buffer.set_text(if current_word.borrow().starts_with(&entry_text) {"Correct!"}else{"Incorrect"});
+        is_correct_preview_buffer.set_text(if current_word.borrow().starts_with(&entry_text) {"Correto!"}else{"Incorreto"});
         if entry_text.ends_with(" "){
             let entry_text = entry_text.trim().to_string();
             if entry_text.eq(&*current_word.borrow()){
-                typed_words_ref.borrow_mut().push(Word::Correct(entry_text));
+                //typed_words_ref.borrow_mut().push(Word::Correct(entry_text));
+                *correct_word_count.borrow_mut()+=1;
+                correct_word_count_preview_buffer.set_text(format!("Correto: {}", *correct_word_count.borrow()).as_str());
             }else{
-                typed_words_ref.borrow_mut().push(Word::Incorrect(entry_text));
+                *incorrect_word_count.borrow_mut()+=1;
+                incorrect_word_count_preview_buffer.set_text(format!("Incorreto: {}", *incorrect_word_count.borrow()).as_str());
+                //typed_words_ref.borrow_mut().push(Word::Incorrect(entry_text));
             }
             *current_index.borrow_mut()+=1;
             *current_word.borrow_mut()=words[*current_index.borrow()].to_string();
@@ -102,21 +121,42 @@ fn build_ui<'a>(f: &gtk::Application){
         gtk::glib::Propagation::Proceed
     });
 
+    window.connect_delete_event(|appwindow,f|{
+        appwindow.close();
+        gtk::glib::Propagation::Proceed
+    });
+
     let preview_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
     let preview_and_first_word_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
     
+    preview_and_first_word_box.set_hexpand(true);
+    preview_and_first_word_box.set_hexpand(true);
+
+    let word_count_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    correct_word_count_preview.set_hexpand(true);
+    incorrect_word_count_preview.set_hexpand(true);
+
+    correct_word_count_preview.set_widget_name("correct_word_count");
+    incorrect_word_count_preview.set_widget_name("incorrect_word_count");
+
+    word_count_box.add(&correct_word_count_preview);
+    word_count_box.add(&incorrect_word_count_preview);
+
     preview.set_hexpand(true);
     preview.set_vexpand(true);
+
     entry.set_hexpand(true);
     entry.set_height_request(100);
     entry.grab_focus();
+    entry.set_widget_name("entry");
 
     preview_and_first_word_box.add(&first_word_preview);
     preview_and_first_word_box.add(&preview);
 
     preview.set_wrap_mode(gtk::WrapMode::WordChar);
     preview.set_widget_name("preview");
+    first_word_preview.set_widget_name("first_word_preview");
     is_correct_preview.set_widget_name("is_correct_preview");
     entry.set_widget_name("entry");
     preview_and_first_word_box.set_widget_name("preview_box");
@@ -124,9 +164,10 @@ fn build_ui<'a>(f: &gtk::Application){
 
     preview_box.add(&is_correct_preview);
     preview_box.add(&preview_and_first_word_box);
-
+    
     use gtk::prelude::*;
     window_box.add(&preview_box);
+    window_box.add(&word_count_box);
     window_box.add(&entry);
 
     window.add(&window_box);
