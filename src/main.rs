@@ -1,9 +1,9 @@
-use std::{ops::Add, cell::RefCell};
+use std::cell::RefCell;
 
-use rand::{prelude::*, rngs::OsRng};
-use gtk::{prelude::*, ListBoxRow, glib::bitflags::iter::Iter};
+use rand::{rngs::OsRng, seq::SliceRandom};
+use gtk::prelude::*;
 
-const data: &'static str = include_str!("br_utf8.txt");
+const DATA: &'static str = include_str!("br_utf8.txt");
 
 #[derive(Debug)]
 enum Word{
@@ -12,7 +12,7 @@ enum Word{
 }
 
 fn get_words()->Vec<&'static str>{
-    let mut words: Vec<&str> = data.split("\n").map(|f|f.trim()).collect();
+    let mut words: Vec<&str> = DATA.split("\n").map(|f|f.trim()).collect();
     words.shuffle(&mut OsRng);
     words
 }
@@ -20,7 +20,7 @@ fn get_words()->Vec<&'static str>{
 fn build_ui<'a>(f: &gtk::Application){
     
     let words = get_words();
-    let mut current_index:RefCell<usize> = RefCell::new(0);
+    let current_index:RefCell<usize> = RefCell::new(0);
 
 
     let window = gtk::ApplicationWindow::new(f);
@@ -32,8 +32,7 @@ fn build_ui<'a>(f: &gtk::Application){
     let window_box = gtk::Box::new(gtk::Orientation::Vertical, 32);
 
     
-    let mut typed_words: Vec<Word> = Vec::new();
-    let typed_words_ref = RefCell::new(typed_words);
+    let typed_words_ref: RefCell<Vec<Word>> = RefCell::new(Vec::new());
 
     let mut entry_buffer = gtk::EntryBuffer::new(Some(""));
     let entry = gtk::Entry::builder()
@@ -88,8 +87,6 @@ fn build_ui<'a>(f: &gtk::Application){
 }
 
 fn main() {
-    
-
     let app = gtk::Application::builder().application_id("com.apollo.typing_test").build();
 
     app.connect_activate(move |f| build_ui(f));
