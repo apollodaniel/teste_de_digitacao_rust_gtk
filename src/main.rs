@@ -1,15 +1,15 @@
-use std::{cell::RefCell, borrow::BorrowMut};
+use std::cell::RefCell;
 
 use rand::{rngs::OsRng, seq::SliceRandom};
 use gtk::{CssProvider, gdk::Screen, prelude::{CssProviderExt, ApplicationExt, ApplicationExtManual}};
 use gtk::prelude::GtkWindowExt;
 const DATA: &'static str = include_str!("br_utf8.txt");
 
-#[derive(Debug)]
-enum Word{
-    Correct(String),
-    Incorrect(String)
-}
+// #[derive(Debug)]
+// enum Word{
+//     Correct(String),
+//     Incorrect(String)
+// }
 
 fn get_words()->Vec<&'static str>{
     let mut words: Vec<&str> = DATA.split("\n").map(|f|f.trim()).collect();
@@ -28,8 +28,8 @@ fn build_ui<'a>(f: &gtk::Application){
     
     let words = get_words();
     let current_index:RefCell<usize> = RefCell::new(0);
-    let mut correct_word_count = RefCell::new(0);
-    let mut incorrect_word_count = RefCell::new(0);
+    let correct_word_count = RefCell::new(0);
+    let incorrect_word_count = RefCell::new(0);
 
     let window = gtk::ApplicationWindow::new(f);
     load_css(&window);
@@ -121,7 +121,7 @@ fn build_ui<'a>(f: &gtk::Application){
         gtk::glib::Propagation::Proceed
     });
 
-    window.connect_delete_event(|appwindow,f|{
+    window.connect_delete_event(|appwindow,_|{
         appwindow.close();
         gtk::glib::Propagation::Proceed
     });
