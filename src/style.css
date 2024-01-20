@@ -1,0 +1,10 @@
+#preview_box{
+    font-size: 24px;
+    padding: 32px;
+}
+
+#is_correct_preview {
+    padding-left: 32px;
+    padding-top: 32px;
+    font-size: 16px;
+}
