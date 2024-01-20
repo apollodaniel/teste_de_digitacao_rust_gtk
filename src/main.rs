@@ -26,7 +26,7 @@ fn build_ui<'a>(f: &gtk::Application){
     let window = gtk::ApplicationWindow::new(f);
     window.set_default_width(640);
     window.set_default_height(480);
-
+    window.set_title("Teste de digitação");
     window.set_resizable(false);
 
     let window_box = gtk::Box::new(gtk::Orientation::Vertical, 32);
@@ -37,7 +37,7 @@ fn build_ui<'a>(f: &gtk::Application){
     let mut entry_buffer = gtk::EntryBuffer::new(Some(""));
     let entry = gtk::Entry::builder()
         .buffer(&mut entry_buffer)
-        .placeholder_text("Type here").build();
+        .placeholder_text("Digite aqui").build();
     
     let preview_text = words[0..5].join(" ");
     let mut  preview_buffer = gtk::TextBuffer::builder().text(preview_text).build();
